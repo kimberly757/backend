@@ -33,6 +33,11 @@ const schema = {
     "length": 15,
     "nullable": false,
     "default": "Activo"
+  },
+  "contri_tl": {
+    "type": "varchar",
+    "length": 20,
+    "nullable": true
   }
 };
 

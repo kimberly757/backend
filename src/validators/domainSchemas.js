@@ -83,6 +83,7 @@ const createContribuyenteSchema = z.object({
   contri_nr: z.string().min(1, 'El nombre o razón social es requerida').max(50),
   contri_em: z.string().email('Correo electrónico inválido').max(50),
   contri_es: z.string().max(15).default('Activo'),
+  contri_tl: z.string().max(20).optional().nullable(),
 }).strict();
 
 const updateContribuyenteSchema = createContribuyenteSchema.partial();
