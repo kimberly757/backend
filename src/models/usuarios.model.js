@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query } = require('../config/database');
 
 const tableName = 'tm_usuari';
 const idColumn = 'usuari_id';
@@ -32,6 +32,11 @@ const schema = {
     "type": "varchar",
     "length": 50,
     "nullable": false
+  },
+  "usuari_em": {
+    "type": "varchar",
+    "length": 100,
+    "nullable": true
   },
   "usuari_es": {
     "type": "varchar",

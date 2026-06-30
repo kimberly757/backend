@@ -1,49 +1,85 @@
 const CobroModel = require('../models/cobros.model');
+const { pool } = require('../config/database');
 
-exports.list = async (_req, res) => {
+exports.list = async (req, res, next) => {
   try {
     const items = await CobroModel.list();
     res.json(items);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (err) { next(err); }
 };
 
-exports.getById = async (req, res) => {
+exports.getById = async (req, res, next) => {
   try {
     const item = await CobroModel.getById(req.params.id);
-    if (!item) return res.status(404).json({ message: 'No encontrado' });
+    if (!item) return next({ status: 404, message: 'Cobro no encontrado' });
     res.json(item);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) { next(err); }
+};
+
+/**
+ * Crea un cobro y sus detalles en una sola transacción atómica.
+ * Si falla cualquier inserción, se hace rollback completo.
+ */
+exports.create = async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { detalles, ...cobroData } = req.body;
+
+    // Insertar el cobro principal
+    const cobroFields = Object.keys(cobroData);
+    const cobroValues = Object.values(cobroData);
+    const cobroPlaceholders = cobroValues.map((_, i) => `$${i + 1}`);
+    const cobroResult = await client.query(
+      `INSERT INTO tt_cobros (${cobroFields.join(', ')}) VALUES (${cobroPlaceholders.join(', ')}) RETURNING *`,
+      cobroValues
+    );
+    const cobro = cobroResult.rows[0];
+
+    // Insertar los detalles si se proporcionaron
+    const detallesCreados = [];
+    if (detalles && detalles.length > 0) {
+      for (const detalle of detalles) {
+        const detResult = await client.query(
+          `INSERT INTO tt_detall (cobros_id, deudas_id, detall_mt) VALUES ($1, $2, $3) RETURNING *`,
+          [cobro.cobros_id, detalle.deudas_id, detalle.detall_mt]
+        );
+        detallesCreados.push(detResult.rows[0]);
+
+        // Marcar la deuda como pagada
+        await client.query(
+          `UPDATE tt_deudas SET deudas_es = 'Pagada' WHERE deudas_id = $1`,
+          [detalle.deudas_id]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({ ...cobro, detalles: detallesCreados });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
   }
 };
 
-exports.create = async (req, res) => {
+exports.update = async (req, res, next) => {
   try {
-    const item = await CobroModel.create(req.body);
-    res.status(201).json(item);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.update = async (req, res) => {
-  try {
+    const exists = await CobroModel.getById(req.params.id);
+    if (!exists) return next({ status: 404, message: 'Cobro no encontrado' });
     const item = await CobroModel.update(req.params.id, req.body);
-    if (!item) return res.status(404).json({ message: 'No encontrado' });
     res.json(item);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch (err) { next(err); }
 };
 
-exports.remove = async (req, res) => {
+exports.remove = async (req, res, next) => {
   try {
-    const item = await CobroModel.remove(req.params.id);
-    if (!item) return res.status(404).json({ message: 'No encontrado' });
-    res.json({ message: 'Eliminado correctamente', item });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    const exists = await CobroModel.getById(req.params.id);
+    if (!exists) return next({ status: 404, message: 'Cobro no encontrado' });
+    await CobroModel.remove(req.params.id);
+    res.status(204).send();
+  } catch (err) { next(err); }
 };

@@ -1,0 +1,1079 @@
+{
+  "info": {
+    "name": "SERMAB API",
+    "description": "Colección completa de endpoints para el sistema SERMAB. \n\n**Cómo usar:**\n1. Importa esta colección en Postman\n2. Configura la variable `baseUrl` si es necesario (default: http://localhost:3000)\n3. Ejecuta **Auth > Login** primero para obtener el token JWT\n4. El token se guarda automáticamente en la variable `token` de la colección\n5. Todas las demás peticiones lo usan automáticamente",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('✅ Token guardado automáticamente al registrarse');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rolusr_id\": 1,\n  \"usuari_nm\": \"Juan\",\n  \"usuari_ap\": \"Pérez\",\n  \"usuari_cd\": \"jperez01\",\n  \"usuari_co\": \"contraseña123\",\n  \"usuari_em\": \"juan@ejemplo.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('✅ Token guardado automáticamente');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuari_cd\": \"admin01\",\n  \"usuari_co\": \"mi_contraseña\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Ver Perfil (GET /auth/profile)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        },
+        {
+          "name": "Actualizar Perfil (PUT /auth/profile)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuari_nm\": \"Juan Actualizado\",\n  \"usuari_ap\": \"Pérez López\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        },
+        {
+          "name": "Cambiar Contraseña (PUT /auth/change-password)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"contraseña_actual\",\n  \"newPassword\": \"nueva_contraseña_segura\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Recuperar Contraseña (POST /auth/recover)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/recover", "host": ["{{baseUrl}}"], "path": ["auth", "recover"] }
+          }
+        },
+        {
+          "name": "Resetear Contraseña (POST /auth/reset)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"TOKEN_DE_RECUPERACION_AQUI\",\n  \"newPassword\": \"nueva_contraseña_segura\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/reset", "host": ["{{baseUrl}}"], "path": ["auth", "reset"] }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Roles",
+      "item": [
+        {
+          "name": "Listar Roles",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Obtener Rol por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/roles/1", "host": ["{{baseUrl}}"], "path": ["roles", "1"] }
+          }
+        },
+        {
+          "name": "Crear Rol",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rolusr_nm\": \"Administrador\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Actualizar Rol",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rolusr_nm\": \"Supervisor\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/roles/1", "host": ["{{baseUrl}}"], "path": ["roles", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Rol",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/roles/1", "host": ["{{baseUrl}}"], "path": ["roles", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Usuarios",
+      "item": [
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "Obtener Usuario por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] }
+          }
+        },
+        {
+          "name": "Crear Usuario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rolusr_id\": 1,\n  \"usuari_nm\": \"Juan\",\n  \"usuari_ap\": \"Pérez\",\n  \"usuari_cd\": \"jperez01\",\n  \"usuari_co\": \"contraseña123\",\n  \"usuari_es\": \"Activo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "Actualizar Usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuari_nm\": \"Juan Actualizado\",\n  \"usuari_es\": \"Activo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Usuario",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Tipos de Contribuyente",
+      "item": [
+        {
+          "name": "Listar Tipos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tipos-contribuyente", "host": ["{{baseUrl}}"], "path": ["tipos-contribuyente"] }
+          }
+        },
+        {
+          "name": "Obtener Tipo por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tipos-contribuyente/1", "host": ["{{baseUrl}}"], "path": ["tipos-contribuyente", "1"] }
+          }
+        },
+        {
+          "name": "Crear Tipo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipcon_nm\": \"Persona Natural\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tipos-contribuyente", "host": ["{{baseUrl}}"], "path": ["tipos-contribuyente"] }
+          }
+        },
+        {
+          "name": "Actualizar Tipo",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipcon_nm\": \"Persona Jurídica\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tipos-contribuyente/1", "host": ["{{baseUrl}}"], "path": ["tipos-contribuyente", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Tipo",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/tipos-contribuyente/1", "host": ["{{baseUrl}}"], "path": ["tipos-contribuyente", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧑‍💼 Contribuyentes",
+      "item": [
+        {
+          "name": "Listar Contribuyentes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/contribuyentes", "host": ["{{baseUrl}}"], "path": ["contribuyentes"] }
+          }
+        },
+        {
+          "name": "Obtener Contribuyente por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/contribuyentes/1", "host": ["{{baseUrl}}"], "path": ["contribuyentes", "1"] }
+          }
+        },
+        {
+          "name": "Crear Contribuyente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipcon_id\": 1,\n  \"contri_ri\": \"V-12345678\",\n  \"contri_nr\": \"María García\",\n  \"contri_em\": \"maria@ejemplo.com\",\n  \"contri_es\": \"Activo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/contribuyentes", "host": ["{{baseUrl}}"], "path": ["contribuyentes"] }
+          }
+        },
+        {
+          "name": "Actualizar Contribuyente",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_em\": \"nuevo_correo@ejemplo.com\",\n  \"contri_es\": \"Activo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/contribuyentes/1", "host": ["{{baseUrl}}"], "path": ["contribuyentes", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Contribuyente",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/contribuyentes/1", "host": ["{{baseUrl}}"], "path": ["contribuyentes", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📍 Sectores",
+      "item": [
+        {
+          "name": "Listar Sectores",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sectores", "host": ["{{baseUrl}}"], "path": ["sectores"] }
+          }
+        },
+        {
+          "name": "Obtener Sector por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sectores/1", "host": ["{{baseUrl}}"], "path": ["sectores", "1"] }
+          }
+        },
+        {
+          "name": "Crear Sector",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sector_nm\": \"Sector Norte\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/sectores", "host": ["{{baseUrl}}"], "path": ["sectores"] }
+          }
+        },
+        {
+          "name": "Actualizar Sector",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sector_nm\": \"Sector Sur\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/sectores/1", "host": ["{{baseUrl}}"], "path": ["sectores", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Sector",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/sectores/1", "host": ["{{baseUrl}}"], "path": ["sectores", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📂 Categorías",
+      "item": [
+        {
+          "name": "Listar Categorías",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] }
+          }
+        },
+        {
+          "name": "Obtener Categoría por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"] }
+          }
+        },
+        {
+          "name": "Crear Categoría",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catego_nm\": \"Servicios Públicos\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categorias", "host": ["{{baseUrl}}"], "path": ["categorias"] }
+          }
+        },
+        {
+          "name": "Actualizar Categoría",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catego_nm\": \"Tasas Municipales\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Categoría",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/categorias/1", "host": ["{{baseUrl}}"], "path": ["categorias", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠️ Servicios",
+      "item": [
+        {
+          "name": "Listar Servicios",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/servicios", "host": ["{{baseUrl}}"], "path": ["servicios"] }
+          }
+        },
+        {
+          "name": "Obtener Servicio por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/servicios/1", "host": ["{{baseUrl}}"], "path": ["servicios", "1"] }
+          }
+        },
+        {
+          "name": "Crear Servicio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catego_id\": 1,\n  \"servic_nm\": \"Aseo Urbano\",\n  \"servic_ds\": \"Recolección de desechos sólidos domiciliarios\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/servicios", "host": ["{{baseUrl}}"], "path": ["servicios"] }
+          }
+        },
+        {
+          "name": "Actualizar Servicio",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servic_nm\": \"Aseo Urbano v2\",\n  \"servic_ds\": \"Descripción actualizada\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/servicios/1", "host": ["{{baseUrl}}"], "path": ["servicios", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Servicio",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/servicios/1", "host": ["{{baseUrl}}"], "path": ["servicios", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Tarifas",
+      "item": [
+        {
+          "name": "Listar Tarifas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tarifas", "host": ["{{baseUrl}}"], "path": ["tarifas"] }
+          }
+        },
+        {
+          "name": "Obtener Tarifa por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/tarifas/1", "host": ["{{baseUrl}}"], "path": ["tarifas", "1"] }
+          }
+        },
+        {
+          "name": "Crear Tarifa",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servic_id\": 1,\n  \"tarifa_mt\": 150.00,\n  \"tarifa_fi\": \"2024-01-01\",\n  \"tarifa_ff\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tarifas", "host": ["{{baseUrl}}"], "path": ["tarifas"] }
+          }
+        },
+        {
+          "name": "Actualizar Tarifa",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tarifa_mt\": 200.00,\n  \"tarifa_ff\": \"2024-12-31\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/tarifas/1", "host": ["{{baseUrl}}"], "path": ["tarifas", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Tarifa",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/tarifas/1", "host": ["{{baseUrl}}"], "path": ["tarifas", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏦 Bancos",
+      "item": [
+        {
+          "name": "Listar Bancos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/bancos", "host": ["{{baseUrl}}"], "path": ["bancos"] }
+          }
+        },
+        {
+          "name": "Obtener Banco por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/bancos/1", "host": ["{{baseUrl}}"], "path": ["bancos", "1"] }
+          }
+        },
+        {
+          "name": "Crear Banco",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bancos_nm\": \"Banco de Venezuela\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/bancos", "host": ["{{baseUrl}}"], "path": ["bancos"] }
+          }
+        },
+        {
+          "name": "Actualizar Banco",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bancos_nm\": \"Banco Provincial\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/bancos/1", "host": ["{{baseUrl}}"], "path": ["bancos", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Banco",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/bancos/1", "host": ["{{baseUrl}}"], "path": ["bancos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Métodos de Pago",
+      "item": [
+        {
+          "name": "Listar Métodos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/metodos", "host": ["{{baseUrl}}"], "path": ["metodos"] }
+          }
+        },
+        {
+          "name": "Obtener Método por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/metodos/1", "host": ["{{baseUrl}}"], "path": ["metodos", "1"] }
+          }
+        },
+        {
+          "name": "Crear Método",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodo_nm\": \"Transferencia Bancaria\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/metodos", "host": ["{{baseUrl}}"], "path": ["metodos"] }
+          }
+        },
+        {
+          "name": "Actualizar Método",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodo_nm\": \"Pago Móvil\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/metodos/1", "host": ["{{baseUrl}}"], "path": ["metodos", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Método",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/metodos/1", "host": ["{{baseUrl}}"], "path": ["metodos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏠 Direcciones",
+      "item": [
+        {
+          "name": "Listar Direcciones",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/direcciones", "host": ["{{baseUrl}}"], "path": ["direcciones"] }
+          }
+        },
+        {
+          "name": "Obtener Dirección por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/direcciones/1", "host": ["{{baseUrl}}"], "path": ["direcciones", "1"] }
+          }
+        },
+        {
+          "name": "Crear Dirección",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"sector_id\": 1,\n  \"direcc_ds\": \"Calle 5, Casa 12, Urb. La Paz\",\n  \"direcc_tp\": \"Residencial\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/direcciones", "host": ["{{baseUrl}}"], "path": ["direcciones"] }
+          }
+        },
+        {
+          "name": "Actualizar Dirección",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direcc_ds\": \"Av. Principal, Local 5\",\n  \"direcc_tp\": \"Comercial\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/direcciones/1", "host": ["{{baseUrl}}"], "path": ["direcciones", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Dirección",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/direcciones/1", "host": ["{{baseUrl}}"], "path": ["direcciones", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Inmuebles",
+      "item": [
+        {
+          "name": "Listar Inmuebles",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/inmuebles", "host": ["{{baseUrl}}"], "path": ["inmuebles"] }
+          }
+        },
+        {
+          "name": "Obtener Inmueble por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/inmuebles/1", "host": ["{{baseUrl}}"], "path": ["inmuebles", "1"] }
+          }
+        },
+        {
+          "name": "Crear Inmueble",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"inmueb_ct\": \"CAT-001-2024\",\n  \"inmueb_dr\": \"Calle 10, Casa 5, Barrio El Centro\",\n  \"inmueb_tp\": \"Casa\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/inmuebles", "host": ["{{baseUrl}}"], "path": ["inmuebles"] }
+          }
+        },
+        {
+          "name": "Actualizar Inmueble",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inmueb_tp\": \"Apartamento\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/inmuebles/1", "host": ["{{baseUrl}}"], "path": ["inmuebles", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Inmueble",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/inmuebles/1", "host": ["{{baseUrl}}"], "path": ["inmuebles", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚗 Vehículos",
+      "item": [
+        {
+          "name": "Listar Vehículos",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehiculos", "host": ["{{baseUrl}}"], "path": ["vehiculos"] }
+          }
+        },
+        {
+          "name": "Obtener Vehículo por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehiculos/1", "host": ["{{baseUrl}}"], "path": ["vehiculos", "1"] }
+          }
+        },
+        {
+          "name": "Crear Vehículo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"vehicu_pl\": \"ABC-123\",\n  \"vehicu_mr\": \"Toyota\",\n  \"vehicu_md\": \"Corolla\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehiculos", "host": ["{{baseUrl}}"], "path": ["vehiculos"] }
+          }
+        },
+        {
+          "name": "Actualizar Vehículo",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicu_mr\": \"Ford\",\n  \"vehicu_md\": \"Fiesta\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/vehiculos/1", "host": ["{{baseUrl}}"], "path": ["vehiculos", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Vehículo",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/vehiculos/1", "host": ["{{baseUrl}}"], "path": ["vehiculos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Deudas",
+      "item": [
+        {
+          "name": "Listar Deudas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/deudas", "host": ["{{baseUrl}}"], "path": ["deudas"] }
+          }
+        },
+        {
+          "name": "Obtener Deuda por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/deudas/1", "host": ["{{baseUrl}}"], "path": ["deudas", "1"] }
+          }
+        },
+        {
+          "name": "Crear Deuda",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"servic_id\": 1,\n  \"tarifa_id\": 1,\n  \"deudas_mt\": 150.00,\n  \"deudas_fe\": \"2024-01-15\",\n  \"deudas_es\": \"Pendiente\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/deudas", "host": ["{{baseUrl}}"], "path": ["deudas"] }
+          }
+        },
+        {
+          "name": "Actualizar Deuda",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deudas_es\": \"Pagada\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/deudas/1", "host": ["{{baseUrl}}"], "path": ["deudas", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Deuda",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/deudas/1", "host": ["{{baseUrl}}"], "path": ["deudas", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💵 Cobros",
+      "item": [
+        {
+          "name": "Listar Cobros",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/cobros", "host": ["{{baseUrl}}"], "path": ["cobros"] }
+          }
+        },
+        {
+          "name": "Obtener Cobro por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/cobros/1", "host": ["{{baseUrl}}"], "path": ["cobros", "1"] }
+          }
+        },
+        {
+          "name": "Crear Cobro (con detalles - transacción)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"usuari_id\": 1,\n  \"metodo_id\": 1,\n  \"bancos_id\": 1,\n  \"cobros_mt\": 300.00,\n  \"cobros_rb\": \"REF-20240115\",\n  \"cobros_es\": \"Pagado\",\n  \"detalles\": [\n    {\n      \"deudas_id\": 1,\n      \"detall_mt\": 150.00\n    },\n    {\n      \"deudas_id\": 2,\n      \"detall_mt\": 150.00\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cobros", "host": ["{{baseUrl}}"], "path": ["cobros"] }
+          }
+        },
+        {
+          "name": "Crear Cobro (sin detalles)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contri_id\": 1,\n  \"usuari_id\": 1,\n  \"metodo_id\": 1,\n  \"cobros_mt\": 150.00,\n  \"cobros_es\": \"Pagado\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cobros", "host": ["{{baseUrl}}"], "path": ["cobros"] }
+          }
+        },
+        {
+          "name": "Actualizar Cobro",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cobros_es\": \"Anulado\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/cobros/1", "host": ["{{baseUrl}}"], "path": ["cobros", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Cobro",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/cobros/1", "host": ["{{baseUrl}}"], "path": ["cobros", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧾 Detalles de Cobros",
+      "item": [
+        {
+          "name": "Listar Detalles",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/detalles-cobros", "host": ["{{baseUrl}}"], "path": ["detalles-cobros"] }
+          }
+        },
+        {
+          "name": "Obtener Detalle por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/detalles-cobros/1", "host": ["{{baseUrl}}"], "path": ["detalles-cobros", "1"] }
+          }
+        },
+        {
+          "name": "Crear Detalle",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cobros_id\": 1,\n  \"deudas_id\": 1,\n  \"detall_mt\": 150.00\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/detalles-cobros", "host": ["{{baseUrl}}"], "path": ["detalles-cobros"] }
+          }
+        },
+        {
+          "name": "Actualizar Detalle",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"detall_mt\": 200.00\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/detalles-cobros/1", "host": ["{{baseUrl}}"], "path": ["detalles-cobros", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Detalle",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/detalles-cobros/1", "host": ["{{baseUrl}}"], "path": ["detalles-cobros", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Bitácoras",
+      "item": [
+        {
+          "name": "Listar Bitácoras",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/bitacoras", "host": ["{{baseUrl}}"], "path": ["bitacoras"] }
+          }
+        },
+        {
+          "name": "Obtener Bitácora por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/bitacoras/1", "host": ["{{baseUrl}}"], "path": ["bitacoras", "1"] }
+          }
+        },
+        {
+          "name": "Crear Bitácora",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuari_id\": 1,\n  \"bitaco_ac\": \"Inicio de sesión del sistema\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/bitacoras", "host": ["{{baseUrl}}"], "path": ["bitacoras"] }
+          }
+        },
+        {
+          "name": "Actualizar Bitácora",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bitaco_ac\": \"Cierre de sesión\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/bitacoras/1", "host": ["{{baseUrl}}"], "path": ["bitacoras", "1"] }
+          }
+        },
+        {
+          "name": "Eliminar Bitácora",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/bitacoras/1", "host": ["{{baseUrl}}"], "path": ["bitacoras", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Pruebas de Validación",
+      "description": "Peticiones para verificar que las validaciones Zod y el error handler funcionan correctamente",
+      "item": [
+        {
+          "name": "❌ Body inválido (Zod error 400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campo_inexistente\": \"valor\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "❌ ID no numérico (params 400)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/roles/abc", "host": ["{{baseUrl}}"], "path": ["roles", "abc"] }
+          }
+        },
+        {
+          "name": "❌ ID inexistente (404)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/roles/999999", "host": ["{{baseUrl}}"], "path": ["roles", "999999"] }
+          }
+        },
+        {
+          "name": "❌ Sin token (401)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "❌ Ruta inexistente (404)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/ruta-que-no-existe", "host": ["{{baseUrl}}"], "path": ["ruta-que-no-existe"] }
+          }
+        },
+        {
+          "name": "❌ JSON malformado (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ esto no es json valido }"
+            },
+            "url": { "raw": "{{baseUrl}}/roles", "host": ["{{baseUrl}}"], "path": ["roles"] }
+          }
+        }
+      ]
+    }
+  ]
+}

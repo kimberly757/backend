@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query } = require('../config/database');
 
 const tableName = 'th_bitaco';
 const idColumn = 'bitaco_id';

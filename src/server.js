@@ -1,31 +1,22 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const dotenv = require('dotenv');
-const routes = require('./routes');
+require('./config/env'); // Validar .env PRIMERO (falla rápido si faltan variables)
 
-dotenv.config();
+const { testConnection } = require('./config/database');
+const env = require('./config/env');
+const app = require('./app');
 
-const app = express();
+const start = async () => {
+  try {
+    await testConnection();
+  } catch (err) {
+    console.error('❌ No se pudo conectar a la base de datos:', err.message);
+    process.exit(1);
+  }
 
-app.use(cors());
-app.use(helmet());
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(routes);
-
-app.get('/', (_req, res) => {
-  res.json({ message: 'SERMAB API running' });
-});
-
-const PORT = process.env.PORT || 3000;
-
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
+  app.listen(env.port, () => {
+    console.log(`🚀 Servidor SERMAB corriendo en http://localhost:${env.port}`);
+    console.log(`📖 Documentación API: http://localhost:${env.port}/api/docs`);
+    console.log(`🌍 Entorno: ${env.nodeEnv}`);
   });
-}
+};
 
-module.exports = app;
+start();
