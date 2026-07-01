@@ -15,7 +15,7 @@ const schema = {
   },
   "bitaco_ac": {
     "type": "varchar",
-    "length": 50,
+    "length": 255,
     "nullable": false
   },
   "bitaco_fe": {

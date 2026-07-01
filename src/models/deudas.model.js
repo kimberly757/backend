@@ -37,15 +37,22 @@ const schema = {
     "type": "varchar",
     "length": 10,
     "nullable": false
+  },
+  "inmueb_id": {
+    "type": "integer",
+    "nullable": true,
+    "references": "tm_inmueb.inmueb_id"
   }
 };
 
 const list = async (filters = {}) => {
   let queryStr = `
-    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm, s.servic_fr
+    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm, s.servic_fr,
+           i.inmueb_dr AS inmueble_direccion, i.inmueb_ct AS inmueble_catastro
     FROM ${tableName} d
     JOIN tm_contri c ON d.contri_id = c.contri_id
     JOIN tm_servic s ON d.servic_id = s.servic_id
+    LEFT JOIN tm_inmueb i ON d.inmueb_id = i.inmueb_id
   `;
   const conditions = [];
   const params = [];
@@ -71,10 +78,12 @@ const list = async (filters = {}) => {
 
 const getById = async (id) => {
   const result = await query(`
-    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm, s.servic_fr
+    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm, s.servic_fr,
+           i.inmueb_dr AS inmueble_direccion, i.inmueb_ct AS inmueble_catastro
     FROM ${tableName} d
     JOIN tm_contri c ON d.contri_id = c.contri_id
     JOIN tm_servic s ON d.servic_id = s.servic_id
+    LEFT JOIN tm_inmueb i ON d.inmueb_id = i.inmueb_id
     WHERE d.${idColumn} = $1
   `, [id]);
   return result.rows[0];

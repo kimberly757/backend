@@ -23,5 +23,6 @@ router.use('/deudas',          require('./deudas'));
 router.use('/cobros',          require('./cobros'));
 router.use('/detalles-cobros', require('./detallesCobros'));
 router.use('/bitacoras',       require('./bitacoras'));
+router.use('/jobs',            require('./jobs'));
 
 module.exports = router;
