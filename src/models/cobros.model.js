@@ -52,7 +52,38 @@ const schema = {
 };
 
 const list = async () => {
-  const result = await query(`SELECT * FROM ${tableName} ORDER BY ${idColumn} DESC`);
+  const result = await query(`
+    SELECT 
+      c.cobros_id,
+      c.contri_id,
+      c.usuari_id,
+      c.metodo_id,
+      c.bancos_id,
+      c.cobros_mt,
+      c.cobros_rb,
+      c.cobros_fh,
+      c.cobros_es,
+      con.contri_nr as "contribuyente_nombre",
+      con.contri_ri as "contribuyente_documento",
+      con.tipcon_id,
+      u.usuari_nm as "cajero_nombre",
+      u.usuari_ap as "cajero_apellido",
+      m.metodo_nm as "metodo_nombre",
+      b.bancos_nm as "banco_nombre",
+      (
+        SELECT string_agg(s.servic_nm, ', ')
+        FROM tt_detall d
+        JOIN tt_deudas de ON d.deudas_id = de.deudas_id
+        JOIN tm_servic s ON de.servic_id = s.servic_id
+        WHERE d.cobros_id = c.cobros_id
+      ) as "servicios_list"
+    FROM tt_cobros c
+    JOIN tm_contri con ON c.contri_id = con.contri_id
+    JOIN tm_usuari u ON c.usuari_id = u.usuari_id
+    JOIN tm_metodo m ON c.metodo_id = m.metodo_id
+    LEFT JOIN tm_bancos b ON c.bancos_id = b.bancos_id
+    ORDER BY c.cobros_id DESC
+  `);
   return result.rows;
 };
 

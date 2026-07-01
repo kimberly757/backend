@@ -67,12 +67,52 @@ exports.create = async (req, res, next) => {
 };
 
 exports.update = async (req, res, next) => {
+  const client = await pool.connect();
   try {
     const exists = await CobroModel.getById(req.params.id);
     if (!exists) return next({ status: 404, message: 'Cobro no encontrado' });
-    const item = await CobroModel.update(req.params.id, req.body);
+
+    await client.query('BEGIN');
+
+    // Update the cobro
+    const keys = Object.keys(req.body);
+    const values = Object.values(req.body);
+    let item;
+    if (keys.length > 0) {
+      const assignments = keys.map((key, i) => `${key} = $${i + 1}`);
+      const result = await client.query(
+        `UPDATE tt_cobros SET ${assignments.join(', ')} WHERE cobros_id = $${keys.length + 1} RETURNING *`,
+        [...values, req.params.id]
+      );
+      item = result.rows[0];
+    } else {
+      item = exists;
+    }
+
+    // If voiding the payment, revert deudas status to 'Pendiente'
+    if (req.body.cobros_es === 'Anulado') {
+      // Find associated deudas
+      const detailsResult = await client.query(
+        'SELECT deudas_id FROM tt_detall WHERE cobros_id = $1',
+        [req.params.id]
+      );
+      const deudasIds = detailsResult.rows.map(row => row.deudas_id);
+      if (deudasIds.length > 0) {
+        await client.query(
+          `UPDATE tt_deudas SET deudas_es = 'Pendiente' WHERE deudas_id = ANY($1::int[])`,
+          [deudasIds]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
     res.json(item);
-  } catch (err) { next(err); }
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
 };
 
 exports.remove = async (req, res, next) => {

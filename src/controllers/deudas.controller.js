@@ -1,8 +1,11 @@
 const DeudaModel = require('../models/deudas.model');
 
-exports.list = async (_req, res) => {
+exports.list = async (req, res) => {
   try {
-    const items = await DeudaModel.list();
+    if (req.query.contri_id) {
+      await DeudaModel.autoGeneratePeriods(parseInt(req.query.contri_id));
+    }
+    const items = await DeudaModel.list(req.query);
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: error.message });
