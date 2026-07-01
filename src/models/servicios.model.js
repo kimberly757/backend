@@ -21,16 +21,38 @@ const schema = {
   "servic_ds": {
     "type": "text",
     "nullable": false
+  },
+  "servic_fr": {
+    "type": "varchar",
+    "length": 20,
+    "nullable": false
+  },
+  "servic_es": {
+    "type": "varchar",
+    "length": 15,
+    "nullable": false
   }
 };
 
 const list = async () => {
-  const result = await query(`SELECT * FROM ${tableName} ORDER BY ${idColumn} DESC`);
+  const result = await query(`
+    SELECT s.*, c.catego_nm, t.tarifa_mt as "montoBase", t.tarifa_id
+    FROM ${tableName} s
+    LEFT JOIN tm_catego c ON s.catego_id = c.catego_id
+    LEFT JOIN th_tarifa t ON s.servic_id = t.servic_id AND t.tarifa_ff IS NULL
+    ORDER BY s.servic_id DESC
+  `);
   return result.rows;
 };
 
 const getById = async (id) => {
-  const result = await query(`SELECT * FROM ${tableName} WHERE ${idColumn} = $1`, [id]);
+  const result = await query(`
+    SELECT s.*, c.catego_nm, t.tarifa_mt as "montoBase", t.tarifa_id
+    FROM ${tableName} s
+    LEFT JOIN tm_catego c ON s.catego_id = c.catego_id
+    LEFT JOIN th_tarifa t ON s.servic_id = t.servic_id AND t.tarifa_ff IS NULL
+    WHERE s.${idColumn} = $1
+  `, [id]);
   return result.rows[0];
 };
 

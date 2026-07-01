@@ -41,12 +41,24 @@ const schema = {
 };
 
 const list = async () => {
-  const result = await query(`SELECT * FROM ${tableName} ORDER BY ${idColumn} DESC`);
+  const result = await query(`
+    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm
+    FROM ${tableName} d
+    JOIN tm_contri c ON d.contri_id = c.contri_id
+    JOIN tm_servic s ON d.servic_id = s.servic_id
+    ORDER BY d.${idColumn} DESC
+  `);
   return result.rows;
 };
 
 const getById = async (id) => {
-  const result = await query(`SELECT * FROM ${tableName} WHERE ${idColumn} = $1`, [id]);
+  const result = await query(`
+    SELECT d.*, c.contri_ri, c.contri_nr, c.tipcon_id, s.servic_nm
+    FROM ${tableName} d
+    JOIN tm_contri c ON d.contri_id = c.contri_id
+    JOIN tm_servic s ON d.servic_id = s.servic_id
+    WHERE d.${idColumn} = $1
+  `, [id]);
   return result.rows[0];
 };
 
