@@ -1,8 +1,9 @@
 const BitacoraModel = require('../models/bitacoras.model');
 
-exports.list = async (_req, res) => {
+exports.list = async (req, res) => {
   try {
-    const items = await BitacoraModel.list();
+    const todayOnly = req.query.all !== 'true';
+    const items = await BitacoraModel.list(todayOnly);
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -234,7 +234,7 @@ const updateDetalleCobrosSchema = createDetalleCobrosSchema.partial();
 // ─────────────────────────────────────────────
 const createBitacoraSchema = z.object({
   usuari_id: z.number().int().positive('El ID de usuario debe ser positivo'),
-  bitaco_ac: z.string().min(1, 'La acción de la bitácora es requerida').max(50),
+  bitaco_ac: z.string().min(1, 'La acción de la bitácora es requerida').max(255),
 }).strict();
 
 const updateBitacoraSchema = createBitacoraSchema.partial();

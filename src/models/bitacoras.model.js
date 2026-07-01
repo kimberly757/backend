@@ -25,8 +25,21 @@ const schema = {
   }
 };
 
-const list = async () => {
-  const result = await query(`SELECT * FROM ${tableName} ORDER BY ${idColumn} DESC`);
+const list = async (todayOnly = true) => {
+  let sql = `
+    SELECT b.*, 
+           u.usuari_nm || ' ' || COALESCE(u.usuari_ap, '') AS usuario_nombre,
+           r.rolusr_nm AS usuario_rol
+    FROM ${tableName} b
+    LEFT JOIN tm_usuari u ON b.usuari_id = u.usuari_id
+    LEFT JOIN tm_rolusr r ON u.rolusr_id = r.rolusr_id
+  `;
+  if (todayOnly) {
+    sql += ` WHERE b.bitaco_fe >= CURRENT_DATE `;
+  }
+  sql += ` ORDER BY b.${idColumn} DESC `;
+  
+  const result = await query(sql);
   return result.rows;
 };
 
