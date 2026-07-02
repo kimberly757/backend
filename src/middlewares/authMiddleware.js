@@ -34,4 +34,19 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-module.exports = { requireAuth };
+const requireAdmin = (req, res, next) => {
+  if (!req.auth) {
+    return res.status(401).json({ message: 'No autenticado', errors: [] });
+  }
+  
+  if (req.auth.rol !== 1) {
+    return res.status(403).json({
+      message: 'Acceso denegado. Se requieren permisos de Administrador.',
+      errors: []
+    });
+  }
+  
+  next();
+};
+
+module.exports = { requireAuth, requireAdmin };

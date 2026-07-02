@@ -47,7 +47,7 @@ exports.create = async (req, res, next) => {
       // FOR UPDATE bloquea las filas para evitar que otra transacción
       // las modifique simultáneamente (condición de carrera entre cajas)
       const lockedDeudas = await client.query(
-        `SELECT deudas_id, contri_id, deudas_es FROM tt_deudas WHERE deudas_id = ANY($1::int[]) FOR UPDATE`,
+        `SELECT deudas_id, contri_id, deudas_es, deudas_mt, abono_mt FROM tt_deudas WHERE deudas_id = ANY($1::int[]) FOR UPDATE`,
         [deudasIds]
       );
 
@@ -62,10 +62,10 @@ exports.create = async (req, res, next) => {
           await client.query('ROLLBACK');
           return next({ status: 400, message: `La deuda ${deuda.deudas_id} no pertenece al contribuyente especificado` });
         }
-        // Validar que la deuda esté pendiente (evitar pagos duplicados)
-        if (deuda.deudas_es !== 'Pendiente') {
+        // Validar que la deuda esté pendiente o abonada
+        if (deuda.deudas_es !== 'Pendiente' && deuda.deudas_es !== 'Abonado') {
           await client.query('ROLLBACK');
-          return next({ status: 409, message: `La deuda ${deuda.deudas_id} ya fue pagada o no está pendiente` });
+          return next({ status: 409, message: `La deuda ${deuda.deudas_id} ya fue pagada` });
         }
       }
     }
@@ -90,10 +90,24 @@ exports.create = async (req, res, next) => {
         );
         detallesCreados.push(detResult.rows[0]);
 
-        await client.query(
-          `UPDATE tt_deudas SET deudas_es = 'Pagada' WHERE deudas_id = $1`,
-          [detalle.deudas_id]
-        );
+        // Lógica de Abonos
+        const deudaAsociada = lockedDeudas.rows.find(d => d.deudas_id === detalle.deudas_id);
+        const usdPagado = detalle.detall_mt / (cobroData.tasa_bcv_aplicada || 1);
+        
+        const nuevoAbono = Number(deudaAsociada.abono_mt || 0) + usdPagado;
+        const totalDeuda = Number(deudaAsociada.deudas_mt || 0);
+
+        if (nuevoAbono >= totalDeuda - 0.05) {
+          await client.query(
+            `UPDATE tt_deudas SET deudas_es = 'Pagada', abono_mt = $2 WHERE deudas_id = $1`,
+            [detalle.deudas_id, totalDeuda]
+          );
+        } else {
+          await client.query(
+            `UPDATE tt_deudas SET deudas_es = 'Abonado', abono_mt = $2 WHERE deudas_id = $1`,
+            [detalle.deudas_id, nuevoAbono]
+          );
+        }
       }
     }
 
@@ -169,4 +183,36 @@ exports.remove = async (req, res, next) => {
     await CobroModel.remove(req.params.id);
     res.status(204).send();
   } catch (err) { next(err); }
+};
+
+exports.cierreDiario = async (req, res, next) => {
+  try {
+    const usuarioId = req.auth.id;
+    // Get today's bounds in local timezone context (assuming server and DB are same local timezone)
+    // or just use current date in postgres
+    const result = await pool.query(`
+      SELECT 
+        COALESCE(SUM(cobros_mt), 0) as total,
+        COALESCE(SUM(CASE WHEN m.metodo_nm ILIKE '%efectivo%' THEN cobros_mt ELSE 0 END), 0) as efectivo,
+        COALESCE(SUM(CASE WHEN m.metodo_nm ILIKE '%transferencia%' THEN cobros_mt ELSE 0 END), 0) as transferencia,
+        COALESCE(SUM(CASE WHEN m.metodo_nm ILIKE '%pago%' THEN cobros_mt ELSE 0 END), 0) as pago_movil,
+        COUNT(c.cobros_id) as cant
+      FROM tt_cobros c
+      LEFT JOIN tm_metodo m ON c.metodo_id = m.metodo_id
+      WHERE c.usuari_id = $1 
+        AND c.cobros_es = 'Procesado'
+        AND DATE(c.cobros_fh) = CURRENT_DATE
+    `, [usuarioId]);
+    
+    const row = result.rows[0];
+    res.json({
+      total: parseFloat(row.total),
+      efectivo: parseFloat(row.efectivo),
+      transferencia: parseFloat(row.transferencia),
+      pagoMovil: parseFloat(row.pago_movil),
+      cant: parseInt(row.cant)
+    });
+  } catch (err) {
+    next(err);
+  }
 };
