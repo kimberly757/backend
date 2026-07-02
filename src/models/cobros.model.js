@@ -39,6 +39,11 @@ const schema = {
     "length": 20,
     "nullable": true
   },
+  "cobros_rf": {
+    "type": "varchar",
+    "length": 50,
+    "nullable": true
+  },
   "cobros_fh": {
     "type": "timestamp",
     "nullable": false,
@@ -61,6 +66,7 @@ const list = async () => {
       c.bancos_id,
       c.cobros_mt,
       c.cobros_rb,
+      c.cobros_rf,
       c.cobros_fh,
       c.cobros_es,
       con.contri_nr as "contribuyente_nombre",
@@ -88,7 +94,11 @@ const list = async () => {
 };
 
 const getById = async (id) => {
-  const result = await query(`SELECT * FROM ${tableName} WHERE ${idColumn} = $1`, [id]);
+  const result = await query(`
+    SELECT ${idColumn}, contri_id, usuari_id, metodo_id, bancos_id,
+           cobros_mt, cobros_rb, cobros_rf, cobros_fh, cobros_es
+    FROM ${tableName} WHERE ${idColumn} = $1
+  `, [id]);
   return result.rows[0];
 };
 

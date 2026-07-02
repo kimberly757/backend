@@ -19,6 +19,13 @@ async function run() {
     `);
     console.log('✅ Columna "servic_es" agregada o ya existente en "tm_servic".');
 
+    // Agregar columna de referencia de pago
+    await pool.query(`
+      ALTER TABLE tt_cobros 
+      ADD COLUMN IF NOT EXISTS cobros_rf VARCHAR(50) DEFAULT NULL;
+    `);
+    console.log('✅ Columna "cobros_rf" agregada o ya existente en "tt_cobros".');
+
     // Verificar estructura actual de la tabla
     const res = await pool.query(`
       SELECT column_name, data_type, character_maximum_length 

@@ -126,14 +126,12 @@ const remove = async (id) => {
 const autoGeneratePeriods = async (contri_id) => {
   if (!contri_id) return;
   
-  // 1. Consultar todos los servicios asignados históricamente al contribuyente
+  // 1. Obtener el último período registrado por servicio para este contribuyente
   const res = await query(`
-    SELECT d.servic_id, MIN(d.deudas_fe) as fecha_inicio, MAX(d.deudas_fe) as fecha_fin, 
-           MAX(d.tarifa_id) as tarifa_id, MAX(d.deudas_mt) as deudas_mt, s.servic_fr
+    SELECT d.servic_id, MAX(d.deudas_fe) as ultimo_periodo
     FROM tt_deudas d
-    JOIN tm_servic s ON d.servic_id = s.servic_id
     WHERE d.contri_id = $1
-    GROUP BY d.servic_id, s.servic_fr
+    GROUP BY d.servic_id
   `, [contri_id]);
   
   const assignedServices = res.rows;
@@ -141,13 +139,24 @@ const autoGeneratePeriods = async (contri_id) => {
 
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1; // 1-indexed
+  const currentMonth = today.getMonth() + 1;
 
   for (const s of assignedServices) {
-    const freq = s.servic_fr; // 'Mensual', 'Bimensual', 'Trimestral', 'Semestral', 'Anual', 'Único'
-    if (freq === 'Único') continue;
+    // 2. Obtener la tarifa activa actual del servicio (NO la máxima histórica)
+    //    Esto asegura que los nuevos periodos usen el monto vigente
+    const servInfo = await query(`
+      SELECT s.servic_fr, t.tarifa_id, t.tarifa_mt
+      FROM tm_servic s
+      LEFT JOIN th_tarifa t ON s.servic_id = t.servic_id AND t.tarifa_ff IS NULL
+      WHERE s.servic_id = $1
+    `, [s.servic_id]);
 
-    const lastDate = new Date(s.fecha_fin);
+    if (!servInfo.rows.length) continue;
+
+    const { servic_fr: freq, tarifa_id, tarifa_mt } = servInfo.rows[0];
+    if (freq === 'Único' || !tarifa_id) continue;
+
+    const lastDate = new Date(s.ultimo_periodo);
     if (isNaN(lastDate.getTime())) continue;
 
     const lastYear = lastDate.getUTCFullYear();
@@ -173,7 +182,7 @@ const autoGeneratePeriods = async (contri_id) => {
         await query(`
           INSERT INTO tt_deudas (contri_id, servic_id, tarifa_id, deudas_mt, deudas_fe, deudas_es)
           VALUES ($1, $2, $3, $4, $5, 'Pendiente')
-        `, [contri_id, s.servic_id, s.tarifa_id, s.deudas_mt, newDateStr]);
+        `, [contri_id, s.servic_id, tarifa_id, tarifa_mt, newDateStr]);
 
         tempMonth++;
       }
@@ -195,7 +204,7 @@ const autoGeneratePeriods = async (contri_id) => {
         await query(`
           INSERT INTO tt_deudas (contri_id, servic_id, tarifa_id, deudas_mt, deudas_fe, deudas_es)
           VALUES ($1, $2, $3, $4, $5, 'Pendiente')
-        `, [contri_id, s.servic_id, s.tarifa_id, s.deudas_mt, newDateStr]);
+        `, [contri_id, s.servic_id, tarifa_id, tarifa_mt, newDateStr]);
 
         tempMonth += 3;
       }
@@ -208,7 +217,7 @@ const autoGeneratePeriods = async (contri_id) => {
         await query(`
           INSERT INTO tt_deudas (contri_id, servic_id, tarifa_id, deudas_mt, deudas_fe, deudas_es)
           VALUES ($1, $2, $3, $4, $5, 'Pendiente')
-        `, [contri_id, s.servic_id, s.tarifa_id, s.deudas_mt, newDateStr]);
+        `, [contri_id, s.servic_id, tarifa_id, tarifa_mt, newDateStr]);
 
         tempYear++;
       }
@@ -230,7 +239,7 @@ const autoGeneratePeriods = async (contri_id) => {
         await query(`
           INSERT INTO tt_deudas (contri_id, servic_id, tarifa_id, deudas_mt, deudas_fe, deudas_es)
           VALUES ($1, $2, $3, $4, $5, 'Pendiente')
-        `, [contri_id, s.servic_id, s.tarifa_id, s.deudas_mt, newDateStr]);
+        `, [contri_id, s.servic_id, tarifa_id, tarifa_mt, newDateStr]);
 
         tempMonth += 2;
       }
@@ -252,7 +261,7 @@ const autoGeneratePeriods = async (contri_id) => {
         await query(`
           INSERT INTO tt_deudas (contri_id, servic_id, tarifa_id, deudas_mt, deudas_fe, deudas_es)
           VALUES ($1, $2, $3, $4, $5, 'Pendiente')
-        `, [contri_id, s.servic_id, s.tarifa_id, s.deudas_mt, newDateStr]);
+        `, [contri_id, s.servic_id, tarifa_id, tarifa_mt, newDateStr]);
 
         tempMonth += 6;
       }

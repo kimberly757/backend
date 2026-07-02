@@ -207,6 +207,7 @@ const createCobroSchema = z.object({
   bancos_id: z.number().int().positive().optional().nullable(),
   cobros_mt: z.number().positive('El monto del cobro debe ser mayor a 0'),
   cobros_rb: z.string().max(20).optional().nullable(),
+  cobros_rf: z.string().max(50).optional().nullable(),
   cobros_es: z.string().min(1, 'El estado del cobro es requerido').max(10),
   detalles: z.array(
     z.object({
